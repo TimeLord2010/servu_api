@@ -1,0 +1,1 @@
+enum OperationsMode { offline, online }
