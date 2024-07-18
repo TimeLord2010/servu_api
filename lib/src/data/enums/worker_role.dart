@@ -1,0 +1,4 @@
+enum WorkerRole {
+  admin,
+  waiter,
+}
