@@ -1,7 +1,10 @@
 import 'dart:math';
 
 import 'package:drift/src/runtime/query_builder/query_builder.dart';
+import 'package:servu_api/src/data/enums/worker_role.dart';
 import 'package:servu_api/src/data/local_tables/app_database.dart';
+import 'package:servu_api/src/data/models/restaurant.dart';
+import 'package:servu_api/src/data/models/restaurant_worker.dart';
 import 'package:servu_api/src/data/models/worker.dart';
 import 'package:servu_api/src/repositories/models/worker_api_model.dart';
 
@@ -23,12 +26,16 @@ class LocalWorkerApiRepository extends WorkerApiModel {
     ));
   }
 
-  SimpleSelectStatement<$LocalWorkerTable, LocalWorkerData> get _select {
+  SimpleSelectStatement<$LocalWorkerTable, LocalWorkerData> get _workerSelect {
     return database.select(database.localWorker);
   }
 
+  SimpleSelectStatement<$LocalWorkerRestaurantTable, LocalWorkerRestaurantData> get _workerRestaurant {
+    return database.select(database.localWorkerRestaurant);
+  }
+
   Future<LocalWorkerData?> getByEmail(String email) async {
-    var query = _select..where((x) => x.email.equals(email));
+    var query = _workerSelect..where((x) => x.email.equals(email));
     var doc = await query.getSingleOrNull();
     return doc;
   }
@@ -38,7 +45,10 @@ class LocalWorkerApiRepository extends WorkerApiModel {
     _simulateNetworkLatency();
     var worker = await getByEmail(email);
     if (worker != null) {
-      return _toWorker(worker);
+      var query = _workerRestaurant..where((x) => x.workerId.equals(worker.id));
+      var docs = await query.get();
+      var restaurantWorker = docs.map(_toRestaurantWorker);
+      return _toWorker(worker, restaurantWorker);
     }
     return null;
   }
@@ -56,11 +66,29 @@ class LocalWorkerApiRepository extends WorkerApiModel {
   }
 }
 
-Worker _toWorker(LocalWorkerData data) {
+Worker _toWorker(LocalWorkerData data, Iterable<RestaurantWorker> restaurants) {
   return Worker(
     email: data.email,
     name: data.name,
     password: data.password,
-    restaurants: {},
+    restaurants: restaurants.map((x) {
+      return Restaurant(
+        id: x.restaurantId,
+      );
+    }).toSet(),
+  );
+}
+
+RestaurantWorker _toRestaurantWorker(LocalWorkerRestaurantData data) {
+  var rolesIndexes = data.roles.split(',').map((x) => x.trim());
+  var roles = rolesIndexes.map((x) {
+    var index = int.tryParse(x);
+    if (index == null) return null;
+    return WorkerRole.values[index];
+  }).whereType<WorkerRole>();
+  return RestaurantWorker(
+    userId: data.workerId.toString(),
+    restaurantId: data.restaurantId.toString(),
+    roles: roles.toSet(),
   );
 }

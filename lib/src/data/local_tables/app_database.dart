@@ -4,6 +4,7 @@ import 'package:drift/drift.dart';
 import 'package:drift/native.dart';
 import 'package:path/path.dart' as p;
 import 'package:servu_api/src/data/local_tables/local_worker.dart';
+import 'package:servu_api/src/data/local_tables/local_worker_restaurant.dart';
 import 'package:servu_api/src/data/static/configuration.dart';
 import 'package:sqlite3/sqlite3.dart';
 
@@ -14,7 +15,12 @@ import 'logged_user.dart';
 
 part 'app_database.g.dart';
 
-@DriftDatabase(tables: [LocalUser, LoggedUser, LocalWorker])
+@DriftDatabase(tables: [
+  LocalUser,
+  LoggedUser,
+  LocalWorker,
+  LocalWorkerRestaurant,
+])
 class AppDatabase extends _$AppDatabase {
   AppDatabase() : super(_openConnection());
 
