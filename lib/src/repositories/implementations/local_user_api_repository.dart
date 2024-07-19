@@ -16,7 +16,7 @@ class LocalUserApiRepository implements UserApiModel {
 
   @override
   Future<User> register(String name, String email, String password) async {
-    await Future.delayed(const Duration(seconds: 1));
+    await Future.delayed(const Duration(milliseconds: 600));
     var exists = await emailExists(email);
     if (exists) {
       throw Exception('Email is already registered');
@@ -38,15 +38,14 @@ class LocalUserApiRepository implements UserApiModel {
   }
 
   @override
-  Future<User> login(String email, String password) async {
-    await Future.delayed(const Duration(seconds: 1));
+  Future<User?> login(String email, String password) async {
+    await Future.delayed(const Duration(milliseconds: 600));
     var doc = await getByEmail(email);
-    var exc = Exception('Credentials did not match');
     if (doc == null) {
-      throw exc;
+      return null;
     }
     if (doc.password != password) {
-      throw exc;
+      return null;
     }
     return doc;
   }

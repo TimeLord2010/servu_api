@@ -8,6 +8,7 @@ class Worker extends User {
   Worker({
     required super.name,
     required super.email,
+    super.password,
     required this.restaurants,
   });
 }
